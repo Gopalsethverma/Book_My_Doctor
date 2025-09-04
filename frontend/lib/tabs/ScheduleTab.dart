@@ -53,7 +53,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
       // Make an HTTP GET request to the server endpoint
       final response = await http.get(
         Uri.parse(
-            'https://fullmanage.netlify.app/.netlify/functions/api/update-appointments'),
+            'https://advanced-app.netlify.app/.netlify/functions/api/update-appointments'),
       );
 
       // Check if the request was successful
@@ -74,7 +74,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://fullmanage.netlify.app/.netlify/functions/api/appointmentanddoctor/${user!.uid}'),
+            'https://advanced-app.netlify.app/.netlify/functions/api/appointmentanddoctor/${user!.uid}'),
       );
 
       if (response.statusCode == 200) {

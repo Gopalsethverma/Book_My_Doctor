@@ -1,2 +1,36 @@
-# Local Netlify folder
+# Dependencies
+node_modules/
+
+# Environment variables (keep credentials secure)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Logs
+*.log
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Netlify
 .netlify
+# Netlify config
+netlify.toml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.kubeconfig
+k8s/secret.yaml

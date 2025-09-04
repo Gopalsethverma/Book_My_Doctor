@@ -27,10 +27,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -78,4 +75,15 @@ class DefaultFirebaseOptions {
     storageBucket: 'dumy-81353.appspot.com',
     iosBundleId: 'com.example.doctorBooking.RunnerTests',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyB9jsjJA8Q3l0graAJ5bTswW_pUB09oYSc',
+    appId: '1:223282184367:web:2f94aa1c8fac01cc6ad45a',
+    messagingSenderId: '223282184367',
+    projectId: 'dumy-81353',
+    authDomain: 'dumy-81353.firebaseapp.com',
+    storageBucket: 'dumy-81353.firebasestorage.app',
+    measurementId: 'G-JSFZ1FEVF1',
+  );
+
 }

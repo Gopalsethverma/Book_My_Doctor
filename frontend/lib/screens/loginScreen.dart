@@ -5,6 +5,7 @@ import 'package:doctor_booking/screens/signupScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class loginScreen extends StatefulWidget {
   @override
@@ -19,17 +20,31 @@ class _loginScreenState extends State<loginScreen> {
   @override
   void initState() {
     super.initState();
-    // Check if user is already logged in
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      _fetchPatientDetails(user.uid);
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+    int? loginTimestamp = prefs.getInt('loginTimestamp');
+    if (userId != null && loginTimestamp != null) {
+      // Check if session is still valid (within 30 days)
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      if (now - loginTimestamp < thirtyDaysMs) {
+        _fetchPatientDetails(userId);
+      } else {
+        // Session expired, clear it
+        await prefs.remove('userId');
+        await prefs.remove('loginTimestamp');
+      }
     }
   }
 
   Future<void> _fetchPatientDetails(String patientId) async {
     try {
-      final response =
-          await http.get(Uri.parse('https:/your_api/patients/$patientId'));
+      final response = await http.get(Uri.parse(
+          'https://advanced-app.netlify.app/.netlify/functions/api/patients/$patientId'));
 
       if (response.statusCode == 200) {
         // Extract patient name from the response
@@ -53,14 +68,12 @@ class _loginScreenState extends State<loginScreen> {
 
   Future<void> _signIn() async {
     try {
-      // Show CircularProgressIndicator
+      // Show loader
       showDialog(
         context: context,
-        barrierDismissible: false, // prevent user from dismissing dialog
+        barrierDismissible: false,
         builder: (BuildContext context) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(child: CircularProgressIndicator());
         },
       );
 
@@ -72,36 +85,54 @@ class _loginScreenState extends State<loginScreen> {
 
       // Fetch patient details from the server
       String patientId = userCredential.user!.uid;
-      final response =
-          await http.get(Uri.parse('https:/your_api/patients/$patientId'));
+      final response = await http.get(Uri.parse(
+          'https://advanced-app.netlify.app/.netlify/functions/api/patients/$patientId'));
 
+      String patientName = '';
       if (response.statusCode == 200) {
         // Extract patient name from the response
         Map<String, dynamic> patientData = json.decode(response.body);
-        String patientName = patientData['Name'];
-
-        // Navigate to home screen with patient name
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Home(patientName: patientName),
-          ),
-        );
+        patientName = patientData['Name'] ?? '';
       } else {
-        print('Failed to fetch patient details: ${response.statusCode}');
+        patientName = userCredential.user?.email ?? 'User';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to fetch patient details.')),
+        );
       }
+      // Save session (userId and timestamp)
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', patientId);
+      await prefs.setInt(
+          'loginTimestamp', DateTime.now().millisecondsSinceEpoch);
+      // Hide loader before navigation
+      Navigator.pop(context);
+      // Navigate to home screen with patient name (fallback if needed)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Home(patientName: patientName),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
-      // Hide CircularProgressIndicator
+      // Hide loader on error
       Navigator.pop(context);
-
+      String errorMessage = '';
       if (e.code == 'user-not-found') {
-        print('No user found for that email.');
+        errorMessage = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
+        errorMessage = 'Wrong password provided for that user.';
+      } else {
+        errorMessage = 'Login failed. Please check your credentials.';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     } catch (e) {
-      // Hide CircularProgressIndicator
+      // Hide loader on error
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed. Please try again.')),
+      );
       print(e);
     }
   }

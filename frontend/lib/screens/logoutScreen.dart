@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:doctor_booking/screens/loginScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutScreen extends StatelessWidget {
   Future<void> _signOut(BuildContext context) async {
@@ -15,6 +16,11 @@ class LogoutScreen extends StatelessWidget {
           );
         },
       );
+
+      // Clear session data
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userId');
+      await prefs.remove('loginTimestamp');
 
       await FirebaseAuth.instance.signOut();
       Navigator.pushAndRemoveUntil(

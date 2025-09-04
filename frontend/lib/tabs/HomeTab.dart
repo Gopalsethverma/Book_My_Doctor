@@ -4,6 +4,7 @@ import 'package:doctor_booking/screens/logoutScreen.dart';
 import 'package:doctor_booking/styles/colors.dart';
 import 'package:doctor_booking/styles/styles.dart';
 import 'package:flutter/material.dart';
+import '../screens/chat_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -54,7 +55,7 @@ class _HomeTabState extends State<HomeTab> {
 
   Future<void> fetchDoctors() async {
     final response = await http.get(Uri.parse(
-        'https://fullmanage.netlify.app/.netlify/functions/api/doctors'));
+        'https://advanced-app.netlify.app/.netlify/functions/api/doctors'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
@@ -145,10 +146,10 @@ class _HomeTabState extends State<HomeTab> {
 }
 
 class TopDoctorCard extends StatefulWidget {
-  Doctor doctor;
-  String img;
-  String doctorName;
-  String doctorTitle;
+  final Doctor doctor;
+  final String img;
+  final String doctorName;
+  final String doctorTitle;
 
   TopDoctorCard({
     required this.doctor,
@@ -329,6 +330,7 @@ class AppointmentCard extends StatelessWidget {
 }
 
 List<Map> categories = [
+  {'icon': Icons.smart_toy, 'text': 'Health Bot'},
   {'icon': Icons.coronavirus, 'text': 'Covid 19'},
   {'icon': Icons.local_hospital, 'text': 'Hospital'},
   {'icon': Icons.car_rental, 'text': 'Ambulance'},
@@ -340,6 +342,7 @@ class CategoryIcons extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -408,8 +411,8 @@ class ScheduleCard extends StatelessWidget {
 }
 
 class CategoryIcon extends StatelessWidget {
-  IconData icon;
-  String text;
+  final IconData icon;
+  final String text;
 
   CategoryIcon({
     required this.icon,
@@ -420,7 +423,24 @@ class CategoryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       splashColor: Color(MyColors.bg01),
-      onTap: () {},
+      onTap: () {
+        if (text == 'Health Bot') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(),
+            ),
+          );
+        } else if (text == 'Covid 19') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CovidDescriptionPage(),
+            ),
+          );
+        }
+        // Add navigation for other categories if needed
+      },
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Column(
@@ -432,19 +452,10 @@ class CategoryIcon extends StatelessWidget {
                 color: Color(MyColors.bg),
                 borderRadius: BorderRadius.circular(50),
               ),
-              child: InkWell(
-                  child: Icon(
-                    icon,
-                    color: Color(MyColors.primary),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              CovidDescriptionPage()), // Navigate to CovidDescriptionPage
-                    );
-                  }),
+              child: Icon(
+                icon,
+                color: Color(MyColors.primary),
+              ),
             ),
             SizedBox(
               height: 10,

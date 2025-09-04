@@ -1,16 +1,16 @@
 const express = require('express');
-const serverless = require('serverless-http');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const cors = require('cors');
 
 const app = express();
-const router = express.Router();
 
+// Middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+// Database connection
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -21,8 +21,16 @@ const connection = mysql.createConnection({
 
 connection.connect((err) => {
     if (err) throw err;
-    console.log("db connected");
+    console.log("Database connected");
 });
+
+// Health check endpoint for Kubernetes probes
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Import routes from the Netlify function
+const router = express.Router();
 
 // Server for fetching appointments corresponding to a patient ID
 router.get('/appointments/:patientId', (req, res) => {
@@ -35,6 +43,7 @@ router.get('/appointments/:patientId', (req, res) => {
         }
     });
 });
+
 // Server for fetching patient details corresponding to a patient ID
 router.get('/patients/:patientId', (req, res) => {
     const patientId = req.params.patientId;
@@ -128,6 +137,7 @@ router.post('/patients', (req, res) => {
         }
     });
 });
+
 // Server for inserting into the Appointments table
 router.post('/appointments', (req, res) => {
     const { DoctorID, PatientID, AppointmentDate, AppointmentTime, Status } = req.body;
@@ -192,9 +202,11 @@ router.post('/appointments', (req, res) => {
     });
 });
 
+// Mount routes
+app.use('/', router);
 
-// Apply routes
-app.use('/.netlify/functions/api', router);
-
-// Export serverless handler
-module.exports.handler = serverless(app);
+// Start server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`API server listening on port ${port}`);
+});

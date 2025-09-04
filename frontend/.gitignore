@@ -11,10 +11,10 @@
 migrate_working_dir/
 
 # IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Ignore only files likely to contain API keys or secrets
+lib/services/*_api_keys.dart
+lib/services/*_secrets.dart
+lib/services/*_private.dart
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -41,3 +41,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Environment and sensitive service files
+.env
+.env.*
+env.local
+firebase.json
+# Add any other service/config files containing secrets below

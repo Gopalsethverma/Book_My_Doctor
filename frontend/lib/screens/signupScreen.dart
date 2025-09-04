@@ -24,6 +24,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _signUp() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // Show loader
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Center(child: CircularProgressIndicator());
+          },
+        );
+
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text,
@@ -42,14 +51,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
 
-        // Navigate to next screen or perform any other action
+        // Hide loader after navigation
+        Navigator.pop(context);
       } on FirebaseAuthException catch (e) {
+        // Hide loader on error
+        Navigator.pop(context);
         if (e.code == 'weak-password') {
           print('The password provided is too weak.');
         } else if (e.code == 'email-already-in-use') {
           print('The account already exists for that email.');
         }
       } catch (e) {
+        // Hide loader on error
+        Navigator.pop(context);
         print(e);
       }
     }
@@ -58,7 +72,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _sendUserDataToServer(String uid) async {
     try {
       final response = await http.post(
-        Uri.parse('https:/your_api/patients'),
+        Uri.parse(
+            'https://advanced-app.netlify.app/.netlify/functions/api/patients'),
         body: {
           'PatientID': uid,
           'Name': fullNameController.text,
